@@ -30,6 +30,7 @@ export async function handleNewIssue(
                 persistence: persistence,
                 http: http,
                 slashcommandcontext: context,
+                id: app.getID()
             });
             await modify
                 .getUiController()
@@ -63,8 +64,8 @@ export async function handleIssues(
 ){
     const triggerId= context.getTriggerId();
     if(triggerId){
-        const modal = await GitHubIssuesStarterModal({modify,read,persistence,http,slashcommandcontext:context});
-        await modify.getUiController().openModalView(modal,{triggerId},context.getSender());
+        const modal = await GitHubIssuesStarterModal({modify,read,persistence,http,slashcommandcontext:context, id: app.getID()});
+        await modify.getUiController().openSurfaceView(modal,{triggerId},context.getSender());
     }else{
         console.log("invalid Trigger ID !");
     }

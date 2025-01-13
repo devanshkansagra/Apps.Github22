@@ -29,6 +29,7 @@ import { issueCommentsModal } from '../modals/issueCommentsModal';
 import { createReminder } from './CreateReminder';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { IAuthData } from '@rocket.chat/apps-engine/definition/oauth2/IOAuth2';
+import { NewIssueStarterModal } from '../modals/newIssueStarterModal';
 export class ExecuteViewSubmitHandler {
     constructor(
         private readonly app: GithubApp,
@@ -154,12 +155,12 @@ export class ExecuteViewSubmitHandler {
                             }else{
                                 await sendNotification(this.read,this.modify,user,room,`Invalid Issue !`);
                             }
-                        } 
+                        }
                         break;
                     }
                     case ModalsEnum.NEW_ISSUE_STARTER_VIEW:{
                         const { roomId } = await getInteractionRoomData(this.read.getPersistenceReader(), user.id);
-        
+
                         if (roomId) {
                             let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                             let repository = view.state?.[ModalsEnum.REPO_NAME_INPUT]?.[ModalsEnum.REPO_NAME_INPUT_ACTION] as string;
@@ -167,7 +168,7 @@ export class ExecuteViewSubmitHandler {
                             if (!accessToken) {
                                 await sendNotification(this.read, this.modify, user, room, `Login To Github ! -> /github login`);
                             }else{
-                                
+
                                 repository=repository?.trim();
                                 let response = await getIssueTemplates(this.http,repository,accessToken.token);
                                 if((!response.template_not_found) && response?.templates?.length){
@@ -185,7 +186,7 @@ export class ExecuteViewSubmitHandler {
                                     .openModalViewResponse(createNewIssue);
                                 }
                             }
-                        } 
+                        }
                         break;
                     }
                     case ModalsEnum.SEARCH_VIEW: {
@@ -227,7 +228,7 @@ export class ExecuteViewSubmitHandler {
                             }else{
                                 resourceState = resourceState?.trim();
                             }
- 
+
                             let accessToken = await getAccessTokenForUser(this.read, user, this.app.oauth2Config);
                             if(repository?.length == 0 && labelsArray?.length == 0 && authorsArray?.length == 0){
                                 await sendNotification(this.read, this.modify, user, room, "*Invalid Search Query !*");
@@ -404,7 +405,7 @@ export class ExecuteViewSubmitHandler {
                                     return context
                                         .getInteractionResponder()
                                         .openModalViewResponse(unauthorizedMessageModal);
-                                }else{                               
+                                }else{
                                     let pullRequestComments = await getPullRequestComments(this.http,repository,accessToken.token,pullNumber);
                                     let pullRequestData = await getPullRequestData(this.http,repository,accessToken.token,pullNumber);
                                     if(pullRequestData?.serverError || pullRequestComments?.pullRequestData){
@@ -482,7 +483,7 @@ export class ExecuteViewSubmitHandler {
                                     return context
                                         .getInteractionResponder()
                                         .openModalViewResponse(unauthorizedMessageModal);
-                                }else{                               
+                                }else{
                                     let issueComments = await getIssuesComments(this.http,repository,accessToken?.token,issueNumber);
                                     let issueData = await getIssueData(repository,issueNumber,accessToken.token,this.http);
                                     if(issueData?.issue_compact === "Error Fetching Issue" || issueComments?.issueData){
@@ -552,45 +553,45 @@ export class ExecuteViewSubmitHandler {
                                 response =  await getRepositoryIssues(this.http,repository);
                                 pushRights = repoDetails?.permissions?.push || repoDetails?.permissions?.admin;
                             }
-                            if(response.serverError){
+                            if (response.serverError) {
                                 let errorMessage = response?.message;
-                                    const unauthorizedMessageModal = await messageModal({
-                                        message:`🤖 Error Fetching GitHub Issues : ⚠️ ${errorMessage}`,
-                                        modify: this.modify,
-                                        read: this.read,
-                                        persistence: this.persistence,
-                                        http: this.http,
-                                        uikitcontext: context
-                                    })
-                                    return context
-                                        .getInteractionResponder()
-                                        .openModalViewResponse(unauthorizedMessageModal);
-                            }else{
+                                const unauthorizedMessageModal = await messageModal({
+                                    message: `🤖 Error Fetching GitHub Issues : ⚠️ ${errorMessage}`,
+                                    modify: this.modify,
+                                    read: this.read,
+                                    persistence: this.persistence,
+                                    http: this.http,
+                                    uikitcontext: context
+                                })
+                                return context
+                                    .getInteractionResponder()
+                                    .openModalViewResponse(unauthorizedMessageModal);
+                            } else {
                                 let issueList: Array<IGitHubIssue> = [];
-                                for(let issue of response.issues){
-                                    if(issue.pull_request){
+                                for (let issue of response.issues) {
+                                    if (issue.pull_request) {
                                         continue;
                                     }
                                     let issue_id = issue.id;
                                     let labels: Array<string> = [];
                                     let assignees: Array<string> = [];
-                                    if(issue?.labels && Array.isArray(issue.labels)){
-                                        for(let label of issue.labels){
+                                    if (issue?.labels && Array.isArray(issue.labels)) {
+                                        for (let label of issue.labels) {
                                             labels.push(`${label.name}`);
                                         }
                                     }
-                                    if(issue?.assignees && Array.isArray(issue.assignees)){
-                                        for(let assignee of issue.assignees){
+                                    if (issue?.assignees && Array.isArray(issue.assignees)) {
+                                        for (let assignee of issue.assignees) {
                                             assignees.push(assignee.login);
                                         }
                                     }
-                                    let title:string = issue.title;
-                                    let user_login:string = issue.user.login;
-                                    let number:string|number = issue.number;
-                                    let state:string = issue.state;
-                                    let html_url:string = issue.html_url;
+                                    let title: string = issue.title;
+                                    let user_login: string = issue.user.login;
+                                    let number: string | number = issue.number;
+                                    let state: string = issue.state;
+                                    let html_url: string = issue.html_url;
                                     let issue_compact = `[ #${issue.number} ](${issue?.html_url?.toString()}) *${issue.title?.toString()?.trim()}* : ${issue?.html_url}`;
-                                    let githubIssue: IGitHubIssue={
+                                    let githubIssue: IGitHubIssue = {
                                         issue_id,
                                         labels,
                                         assignees,
@@ -600,33 +601,35 @@ export class ExecuteViewSubmitHandler {
                                         user_login,
                                         title,
                                         issue_compact,
-                                        share:false
+                                        share: false
                                     }
                                     issueList.push(githubIssue);
                                 }
-                                let githubIssueStorage = new GithubRepoIssuesStorage(this.persistence,this.read.getPersistenceReader());
+                                let githubIssueStorage = new GithubRepoIssuesStorage(this.persistence, this.read.getPersistenceReader());
                                 let room = await this.read.getRoomReader().getById(roomId) as IRoom;
-                                let githubIssueData: IGitHubIssueData={
-                                    repository:repository,
+                                let githubIssueData: IGitHubIssueData = {
+                                    repository: repository,
                                     room_id: roomId,
                                     user_id: user.id,
                                     issue_list: issueList,
                                     push_rights: pushRights
                                 }
-                                await githubIssueStorage.updateIssueData(room,user,githubIssueData);
+                                await githubIssueStorage.updateIssueData(room, user, githubIssueData);
 
                                 data = {
                                     issues: issueList,
-                                    pushRights : pushRights, //no access token, so user has no pushRights to the repo,
+                                    pushRights: pushRights, //no access token, so user has no pushRights to the repo,
                                     repo: repository,
                                     user_id: user.id
                                 }
-                                const issuesListModal = await githubIssuesListModal( {data: data, modify: this.modify, read: this.read, persistence: this.persistence, http: this.http, uikitcontext: context} );
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(issuesListModal);
+                                const issuesListModal = await githubIssuesListModal( {data: data, modify: this.modify, read: this.read, persistence: this.persistence, http: this.http, uikitcontext: context, id: this.app.getID()} );
+                                const triggerId = context.getInteractionData().triggerId;
+
+                                if(triggerId) {
+                                    return this.modify.getUiController().openSurfaceView(issuesListModal, { triggerId }, user)
+                                }
                             }
-                        } 
+                        }
                     break;
                 }
                 case ModalsEnum.ADD_ISSUE_ASSIGNEE_VIEW: {
@@ -688,6 +691,7 @@ export class ExecuteViewSubmitHandler {
                                                 read: this.read,
                                                 persistence: this.persistence,
                                                 http: this.http,
+                                                id: this.app.getID(),
                                             })
                                             let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                                             await sendNotification(this.read,this.modify,user,room,"🤖 Assigned Issue Successfully ✔️");
@@ -696,7 +700,7 @@ export class ExecuteViewSubmitHandler {
                                         }
                                 }
                             }
-                        } 
+                        }
                     break;
                 }
                 case ModalsEnum.ISSUE_LIST_VIEW:{
@@ -713,11 +717,13 @@ export class ExecuteViewSubmitHandler {
                                     read: this.read,
                                     persistence: this.persistence,
                                     http: this.http,
-                                    uikitcontext: context
+                                    uikitcontext: context,
+                                        id: this.app.getID(),
                                 });
-                                return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(issueShareModal);
+                                const triggerId = context.getInteractionData().triggerId;
+                                if(triggerId) {
+                                    return this.modify.getUiController().openSurfaceView(issueShareModal, {triggerId}, user)
+                                }
                             }
                         }
                     }
@@ -729,6 +735,7 @@ export class ExecuteViewSubmitHandler {
                         if (roomId) {
                             let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                             let searchResult: string|undefined = view.state?.[ ModalsEnum.MULTI_SHARE_GITHUB_ISSUES_INPUT]?.[ModalsEnum.MULTI_SHARE_GITHUB_ISSUES_INPUT_ACTION];
+                            console.log(searchResult);
                             await sendMessage(this.modify,room,user,searchResult as string);
                         }
                     }
@@ -742,7 +749,7 @@ export class ExecuteViewSubmitHandler {
                         let repository = view.state?.[ModalsEnum.REPO_NAME_INPUT]?.[ModalsEnum.REPO_NAME_INPUT_ACTION] as string;
 
                         await createReminder(repository,room,this.read,this.app,this.persistence,this.modify,this.http,user)
-                        
+
                     }
                     break;
                 }
