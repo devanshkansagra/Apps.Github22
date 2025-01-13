@@ -536,16 +536,13 @@ export class ExecuteBlockActionHandler {
                         http: this.http,
                         uikitcontext: context,
                     });
-                    await this.modify
-                        .getUiController()
-                        .updateModalView(
-                            modal,
-                            {
-                                triggerId:
-                                    context.getInteractionData().triggerId,
-                            },
-                            context.getInteractionData().user,
-                        );
+                    await this.modify.getUiController().updateModalView(
+                        modal,
+                        {
+                            triggerId: context.getInteractionData().triggerId,
+                        },
+                        context.getInteractionData().user,
+                    );
                     break;
                 }
                 case ModalsEnum.SUBSCRIPTION_REFRESH_ACTION: {
@@ -556,16 +553,13 @@ export class ExecuteBlockActionHandler {
                         http: this.http,
                         uikitcontext: context,
                     });
-                    await this.modify
-                        .getUiController()
-                        .updateModalView(
-                            modal,
-                            {
-                                triggerId:
-                                    context.getInteractionData().triggerId,
-                            },
-                            context.getInteractionData().user,
-                        );
+                    await this.modify.getUiController().updateModalView(
+                        modal,
+                        {
+                            triggerId: context.getInteractionData().triggerId,
+                        },
+                        context.getInteractionData().user,
+                    );
                     break;
                 }
                 case ModalsEnum.ISSUE_TEMPLATE_SELECTION_ACTION: {
@@ -607,10 +601,12 @@ export class ExecuteBlockActionHandler {
                                 persistence: this.persistence,
                                 http: this.http,
                                 uikitcontext: context,
+                                id: this.app.getID(),
                             });
-                            return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(newIssueModal);
+                            const triggerId = context.getInteractionData().triggerId;
+                            if(triggerId) {
+                                await this.modify.getUiController().openSurfaceView(newIssueModal, {triggerId}, user)
+                            }
                         } else {
                             let data = {
                                 repository: actionDetailsArray[0],
@@ -622,10 +618,12 @@ export class ExecuteBlockActionHandler {
                                 persistence: this.persistence,
                                 http: this.http,
                                 uikitcontext: context,
+                                id: this.app.getID(),
                             });
-                            return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(newIssueModal);
+                            const triggerId = context.getInteractionData().triggerId;
+                            if(triggerId) {
+                                await this.modify.getUiController().openSurfaceView(newIssueModal, {triggerId}, user)
+                            }
                         }
                     }
                     break;
@@ -773,17 +771,14 @@ export class ExecuteBlockActionHandler {
                                 persistence: this.persistence,
                                 http: this.http,
                             });
-                            await this.modify
-                                .getUiController()
-                                .updateModalView(
-                                    resultsModal,
-                                    {
-                                        triggerId:
-                                            context.getInteractionData()
-                                                .triggerId,
-                                    },
-                                    context.getInteractionData().user,
-                                );
+                            await this.modify.getUiController().updateModalView(
+                                resultsModal,
+                                {
+                                    triggerId:
+                                        context.getInteractionData().triggerId,
+                                },
+                                context.getInteractionData().user,
+                            );
                         }
                     }
                     break;
@@ -842,17 +837,14 @@ export class ExecuteBlockActionHandler {
                                 persistence: this.persistence,
                                 http: this.http,
                             });
-                            await this.modify
-                                .getUiController()
-                                .updateModalView(
-                                    resultsModal,
-                                    {
-                                        triggerId:
-                                            context.getInteractionData()
-                                                .triggerId,
-                                    },
-                                    context.getInteractionData().user,
-                                );
+                            await this.modify.getUiController().updateModalView(
+                                resultsModal,
+                                {
+                                    triggerId:
+                                        context.getInteractionData().triggerId,
+                                },
+                                context.getInteractionData().user,
+                            );
                         }
                     }
                     break;
@@ -904,13 +896,20 @@ export class ExecuteBlockActionHandler {
                                     persistence: this.persistence,
                                     http: this.http,
                                     uikitcontext: context,
+                                    id: this.app.getID(),
                                 },
                             );
-                            return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(
-                                    unauthorizedMessageModal,
-                                );
+                            const triggerId =
+                                context.getInteractionData().triggerId;
+                            if (triggerId) {
+                                await this.modify
+                                    .getUiController()
+                                    .openSurfaceView(
+                                        unauthorizedMessageModal,
+                                        { triggerId },
+                                        user,
+                                    );
+                            }
                         }
                     }
                     break;
@@ -1018,13 +1017,20 @@ export class ExecuteBlockActionHandler {
                                     persistence: this.persistence,
                                     http: this.http,
                                     uikitcontext: context,
+                                    id: this.app.getID(),
                                 },
                             );
-                            return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(
-                                    unauthorizedMessageModal,
-                                );
+                            const triggerId =
+                                context.getInteractionData().triggerId;
+                            if (triggerId) {
+                                await this.modify
+                                    .getUiController()
+                                    .openSurfaceView(
+                                        unauthorizedMessageModal,
+                                        { triggerId },
+                                        user,
+                                    );
+                            }
                         }
                     }
                     break;
@@ -1065,34 +1071,50 @@ export class ExecuteBlockActionHandler {
                             ) {
                                 const unauthorizedMessageModal =
                                     await messageModal({
-                                        message: `🤖 Error Fetching Issue Data ⚠️`,
+                                        message:
+                                            "Unauthorized Action 🤖 You dont have push rights ⚠️",
                                         modify: this.modify,
                                         read: this.read,
                                         persistence: this.persistence,
                                         http: this.http,
                                         uikitcontext: context,
+                                        id: this.app.getID(),
                                     });
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(
-                                        unauthorizedMessageModal,
-                                    );
+                                const triggerId =
+                                    context.getInteractionData().triggerId;
+                                if (triggerId) {
+                                    await this.modify
+                                        .getUiController()
+                                        .openSurfaceView(
+                                            unauthorizedMessageModal,
+                                            { triggerId },
+                                            user,
+                                        );
+                                }
                             }
                             if (issueComments?.serverError) {
                                 const unauthorizedMessageModal =
                                     await messageModal({
-                                        message: `🤖 Error Fetching Comments ⚠️`,
+                                        message:
+                                            "Unauthorized Action 🤖 You dont have push rights ⚠️",
                                         modify: this.modify,
                                         read: this.read,
                                         persistence: this.persistence,
                                         http: this.http,
                                         uikitcontext: context,
+                                        id: this.app.getID(),
                                     });
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(
-                                        unauthorizedMessageModal,
-                                    );
+                                const triggerId =
+                                    context.getInteractionData().triggerId;
+                                if (triggerId) {
+                                    await this.modify
+                                        .getUiController()
+                                        .openSurfaceView(
+                                            unauthorizedMessageModal,
+                                            { triggerId },
+                                            user,
+                                        );
+                                }
                             }
                         }
                         let data = {
@@ -1145,16 +1167,26 @@ export class ExecuteBlockActionHandler {
                             .openModalViewResponse(addIssueCommentModal);
                     } else {
                         const unauthorizedMessageModal = await messageModal({
-                            message: `🤖 Error in adding comments, make sure you are logged in`,
+                            message:
+                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
                             modify: this.modify,
                             read: this.read,
                             persistence: this.persistence,
                             http: this.http,
                             uikitcontext: context,
+                            id: this.app.getID(),
                         });
-                        return context
-                            .getInteractionResponder()
-                            .openModalViewResponse(unauthorizedMessageModal);
+                        const triggerId =
+                            context.getInteractionData().triggerId;
+                        if (triggerId) {
+                            await this.modify
+                                .getUiController()
+                                .openSurfaceView(
+                                    unauthorizedMessageModal,
+                                    { triggerId },
+                                    user,
+                                );
+                        }
                     }
                     break;
                 }
@@ -1191,34 +1223,50 @@ export class ExecuteBlockActionHandler {
                             if (pullRequestData?.serverError) {
                                 const unauthorizedMessageModal =
                                     await messageModal({
-                                        message: `🤖 Error Fetching Repository Data: ⚠️ ${pullRequestData?.message}`,
+                                        message:
+                                            "Unauthorized Action 🤖 You dont have push rights ⚠️",
                                         modify: this.modify,
                                         read: this.read,
                                         persistence: this.persistence,
                                         http: this.http,
                                         uikitcontext: context,
+                                        id: this.app.getID(),
                                     });
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(
-                                        unauthorizedMessageModal,
-                                    );
+                                const triggerId =
+                                    context.getInteractionData().triggerId;
+                                if (triggerId) {
+                                    await this.modify
+                                        .getUiController()
+                                        .openSurfaceView(
+                                            unauthorizedMessageModal,
+                                            { triggerId },
+                                            user,
+                                        );
+                                }
                             }
                             if (pullRequestComments?.serverError) {
                                 const unauthorizedMessageModal =
                                     await messageModal({
-                                        message: `🤖 Error Fetching Comments: ⚠️ ${pullRequestData?.message}`,
+                                        message:
+                                            "Unauthorized Action 🤖 You dont have push rights ⚠️",
                                         modify: this.modify,
                                         read: this.read,
                                         persistence: this.persistence,
                                         http: this.http,
                                         uikitcontext: context,
+                                        id: this.app.getID(),
                                     });
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(
-                                        unauthorizedMessageModal,
-                                    );
+                                const triggerId =
+                                    context.getInteractionData().triggerId;
+                                if (triggerId) {
+                                    await this.modify
+                                        .getUiController()
+                                        .openSurfaceView(
+                                            unauthorizedMessageModal,
+                                            { triggerId },
+                                            user,
+                                        );
+                                }
                             }
                         }
                         let data = {
@@ -1302,18 +1350,16 @@ export class ExecuteBlockActionHandler {
                             persistence: this.persistence,
                             http: this.http,
                             uikitcontext: context,
-                            id: this.app.getID()
+                            id: this.app.getID(),
                         });
-                        await this.modify
-                            .getUiController()
-                            .updateSurfaceView(
-                                issuesListModal,
-                                {
-                                    triggerId:
-                                        context.getInteractionData().triggerId,
-                                },
-                                context.getInteractionData().user,
-                            );
+                        await this.modify.getUiController().updateSurfaceView(
+                            issuesListModal,
+                            {
+                                triggerId:
+                                    context.getInteractionData().triggerId,
+                            },
+                            context.getInteractionData().user,
+                        );
                     } else {
                         let repoDetails = await getRepoData(
                             this.http,
@@ -1340,16 +1386,14 @@ export class ExecuteBlockActionHandler {
                             uikitcontext: context,
                             id: this.app.getID(),
                         });
-                        await this.modify
-                            .getUiController()
-                            .updateSurfaceView(
-                                issuesListModal,
-                                {
-                                    triggerId:
-                                        context.getInteractionData().triggerId,
-                                },
-                                context.getInteractionData().user,
-                            );
+                        await this.modify.getUiController().updateSurfaceView(
+                            issuesListModal,
+                            {
+                                triggerId:
+                                    context.getInteractionData().triggerId,
+                            },
+                            context.getInteractionData().user,
+                        );
                     }
                     break;
                 }

@@ -117,8 +117,8 @@ export class ExecuteViewSubmitHandler {
                             await this.modify.getUiController().updateModalView(modal, { triggerId: context.getInteractionData().triggerId }, context.getInteractionData().user);
                             return context.getInteractionResponder().successResponse();
                         }
+                        break;
                     }
-                    break;
                     case ModalsEnum.NEW_ISSUE_VIEW: {
                         const { roomId } = await getInteractionRoomData(this.read.getPersistenceReader(), user.id);
                         if (roomId) {
@@ -180,10 +180,19 @@ export class ExecuteViewSubmitHandler {
                                     let data = {
                                         repository: repository
                                     }
-                                    const createNewIssue = await NewIssueModal({ data: data, modify: this.modify, read: this.read, persistence: this.persistence, http: this.http, uikitcontext: context });
-                                    return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(createNewIssue);
+                                    const newIssueModal = await NewIssueModal({
+                                        data,
+                                        modify: this.modify,
+                                        read: this.read,
+                                        persistence: this.persistence,
+                                        http: this.http,
+                                        uikitcontext: context,
+                                        id: this.app.getID(),
+                                    });
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                       return this.modify.getUiController().openSurfaceView(newIssueModal, {triggerId}, user)
+                                    }
                                 }
                             }
                         }
@@ -360,17 +369,22 @@ export class ExecuteViewSubmitHandler {
                                 let mergeResponse = await mergePullRequest(this.http,repository,accessToken.token,pullNumber,commitTitle,commitMessage,mergeMethod);
                                 if(mergeResponse?.serverError){
                                     let errorMessage = mergeResponse?.message;
-                                    const unauthorizedMessageModal = await messageModal({
-                                        message:`🤖 Unable to merge pull request : ⚠️ ${errorMessage}`,
-                                        modify: this.modify,
-                                        read: this.read,
-                                        persistence: this.persistence,
-                                        http: this.http,
-                                        uikitcontext: context
-                                    })
-                                    return context
-                                        .getInteractionResponder()
-                                        .openModalViewResponse(unauthorizedMessageModal);
+                                    const unauthorizedMessageModal = await messageModal(
+                                        {
+                                            message:
+                                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                            modify: this.modify,
+                                            read: this.read,
+                                            persistence: this.persistence,
+                                            http: this.http,
+                                            uikitcontext: context,
+                                            id: this.app.getID(),
+                                        },
+                                    );
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                    }
                                 }else{
                                     let url = `https://github.com/${repository}/pull/${pullNumber}`;
                                     let succesMessage =`🤖 ${mergeResponse?.message} ✔️ : ${url}`;
@@ -394,46 +408,61 @@ export class ExecuteViewSubmitHandler {
                                 let addCommentResponse = await addNewPullRequestComment(this.http,repository,accessToken.token,pullNumber,newComment);
                                 if(addCommentResponse?.serverError){
                                     let errorMessage = addCommentResponse?.message;
-                                    const unauthorizedMessageModal = await messageModal({
-                                        message:`🤖 Unable to add comment : ⚠️ ${errorMessage}`,
-                                        modify: this.modify,
-                                        read: this.read,
-                                        persistence: this.persistence,
-                                        http: this.http,
-                                        uikitcontext: context
-                                    })
-                                    return context
-                                        .getInteractionResponder()
-                                        .openModalViewResponse(unauthorizedMessageModal);
+                                    const unauthorizedMessageModal = await messageModal(
+                                        {
+                                            message:
+                                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                            modify: this.modify,
+                                            read: this.read,
+                                            persistence: this.persistence,
+                                            http: this.http,
+                                            uikitcontext: context,
+                                            id: this.app.getID(),
+                                        },
+                                    );
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                    }
                                 }else{
                                     let pullRequestComments = await getPullRequestComments(this.http,repository,accessToken.token,pullNumber);
                                     let pullRequestData = await getPullRequestData(this.http,repository,accessToken.token,pullNumber);
                                     if(pullRequestData?.serverError || pullRequestComments?.pullRequestData){
                                         if(pullRequestData?.serverError){
-                                            const unauthorizedMessageModal = await messageModal({
-                                                message:`🤖 Error Fetching Repository Data: ⚠️ ${pullRequestData?.message}`,
-                                                modify: this.modify,
-                                                read: this.read,
-                                                persistence: this.persistence,
-                                                http: this.http,
-                                                uikitcontext: context
-                                            })
-                                            return context
-                                                .getInteractionResponder()
-                                                .openModalViewResponse(unauthorizedMessageModal);
+                                            const unauthorizedMessageModal = await messageModal(
+                                                {
+                                                    message:
+                                                        "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                                    modify: this.modify,
+                                                    read: this.read,
+                                                    persistence: this.persistence,
+                                                    http: this.http,
+                                                    uikitcontext: context,
+                                                    id: this.app.getID(),
+                                                },
+                                            );
+                                            const triggerId = context.getInteractionData().triggerId;
+                                            if(triggerId) {
+                                                return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                            }
                                         }
                                         if(pullRequestComments?.serverError){
-                                            const unauthorizedMessageModal = await messageModal({
-                                                message:`🤖 Error Fetching Comments: ⚠️ ${pullRequestData?.message}`,
-                                                modify: this.modify,
-                                                read: this.read,
-                                                persistence: this.persistence,
-                                                http: this.http,
-                                                uikitcontext: context
-                                            })
-                                            return context
-                                                .getInteractionResponder()
-                                                .openModalViewResponse(unauthorizedMessageModal);
+                                            const unauthorizedMessageModal = await messageModal(
+                                                {
+                                                    message:
+                                                        "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                                    modify: this.modify,
+                                                    read: this.read,
+                                                    persistence: this.persistence,
+                                                    http: this.http,
+                                                    uikitcontext: context,
+                                                    id: this.app.getID(),
+                                                },
+                                            );
+                                            const triggerId = context.getInteractionData().triggerId;
+                                            if(triggerId) {
+                                                return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                            }
                                         }
                                     }
                                     let data={
@@ -472,46 +501,61 @@ export class ExecuteViewSubmitHandler {
                                 let addCommentResponse = await addNewIssueComment(this.http,repository,accessToken.token,issueNumber,newComment);
                                 if(addCommentResponse?.serverError){
                                     let errorMessage = addCommentResponse?.message;
-                                    const unauthorizedMessageModal = await messageModal({
-                                        message:`🤖 Unable to add comment : ⚠️ ${errorMessage}`,
-                                        modify: this.modify,
-                                        read: this.read,
-                                        persistence: this.persistence,
-                                        http: this.http,
-                                        uikitcontext: context
-                                    })
-                                    return context
-                                        .getInteractionResponder()
-                                        .openModalViewResponse(unauthorizedMessageModal);
+                                    const unauthorizedMessageModal = await messageModal(
+                                        {
+                                            message:
+                                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                            modify: this.modify,
+                                            read: this.read,
+                                            persistence: this.persistence,
+                                            http: this.http,
+                                            uikitcontext: context,
+                                            id: this.app.getID(),
+                                        },
+                                    );
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                    }
                                 }else{
                                     let issueComments = await getIssuesComments(this.http,repository,accessToken?.token,issueNumber);
                                     let issueData = await getIssueData(repository,issueNumber,accessToken.token,this.http);
                                     if(issueData?.issue_compact === "Error Fetching Issue" || issueComments?.issueData){
                                         if(issueData?.issue_compact === "Error Fetching Issue"){
-                                            const unauthorizedMessageModal = await messageModal({
-                                                message:`🤖 Error Fetching Issue Data ⚠️`,
-                                                modify: this.modify,
-                                                read: this.read,
-                                                persistence: this.persistence,
-                                                http: this.http,
-                                                uikitcontext: context
-                                            })
-                                            return context
-                                                .getInteractionResponder()
-                                                .openModalViewResponse(unauthorizedMessageModal);
+                                            const unauthorizedMessageModal = await messageModal(
+                                                {
+                                                    message:
+                                                        "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                                    modify: this.modify,
+                                                    read: this.read,
+                                                    persistence: this.persistence,
+                                                    http: this.http,
+                                                    uikitcontext: context,
+                                                    id: this.app.getID(),
+                                                },
+                                            );
+                                            const triggerId = context.getInteractionData().triggerId;
+                                            if(triggerId) {
+                                                return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                            }
                                         }
                                         if(issueComments?.serverError){
-                                            const unauthorizedMessageModal = await messageModal({
-                                                message:`🤖 Error Fetching Comments ⚠️`,
-                                                modify: this.modify,
-                                                read: this.read,
-                                                persistence: this.persistence,
-                                                http: this.http,
-                                                uikitcontext: context
-                                            })
-                                            return context
-                                                .getInteractionResponder()
-                                                .openModalViewResponse(unauthorizedMessageModal);
+                                            const unauthorizedMessageModal = await messageModal(
+                                                {
+                                                    message:
+                                                        "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                                    modify: this.modify,
+                                                    read: this.read,
+                                                    persistence: this.persistence,
+                                                    http: this.http,
+                                                    uikitcontext: context,
+                                                    id: this.app.getID(),
+                                                },
+                                            );
+                                            const triggerId = context.getInteractionData().triggerId;
+                                            if(triggerId) {
+                                                return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                            }
                                         }
                                     }
                                     let data={
@@ -555,17 +599,22 @@ export class ExecuteViewSubmitHandler {
                             }
                             if (response.serverError) {
                                 let errorMessage = response?.message;
-                                const unauthorizedMessageModal = await messageModal({
-                                    message: `🤖 Error Fetching GitHub Issues : ⚠️ ${errorMessage}`,
-                                    modify: this.modify,
-                                    read: this.read,
-                                    persistence: this.persistence,
-                                    http: this.http,
-                                    uikitcontext: context
-                                })
-                                return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(unauthorizedMessageModal);
+                                const unauthorizedMessageModal = await messageModal(
+                                    {
+                                        message:
+                                            "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                        modify: this.modify,
+                                        read: this.read,
+                                        persistence: this.persistence,
+                                        http: this.http,
+                                        uikitcontext: context,
+                                        id: this.app.getID(),
+                                    },
+                                );
+                                const triggerId = context.getInteractionData().triggerId;
+                                if(triggerId) {
+                                    return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                }
                             } else {
                                 let issueList: Array<IGitHubIssue> = [];
                                 for (let issue of response.issues) {
@@ -650,17 +699,22 @@ export class ExecuteViewSubmitHandler {
                                 let response =  await updateGithubIssues(this.http,repository,assigneesArray,issueNumber,accessToken.token);
                                 if(response.serverError){
                                     let errorMessage = response?.message;
-                                    const unauthorizedMessageModal = await messageModal({
-                                        message:`🤖 Unable to assign issues : ⚠️ ${errorMessage}`,
-                                        modify: this.modify,
-                                        read: this.read,
-                                        persistence: this.persistence,
-                                        http: this.http,
-                                        uikitcontext: context
-                                    })
-                                    return context
-                                        .getInteractionResponder()
-                                        .openModalViewResponse(unauthorizedMessageModal);
+                                    const unauthorizedMessageModal = await messageModal(
+                                        {
+                                            message:
+                                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                            modify: this.modify,
+                                            read: this.read,
+                                            persistence: this.persistence,
+                                            http: this.http,
+                                            uikitcontext: context,
+                                            id: this.app.getID(),
+                                        },
+                                    );
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(unauthorizedMessageModal, {triggerId}, user)
+                                    }
                                 }else{
                                     let githubissueStorage = new GithubRepoIssuesStorage(this.persistence,this.read.getPersistenceReader());
                                     let repoIssuesData: IGitHubIssueData = await githubissueStorage.getIssueData(roomId as string,user);
@@ -695,8 +749,8 @@ export class ExecuteViewSubmitHandler {
                                             })
                                             let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                                             await sendNotification(this.read,this.modify,user,room,"🤖 Assigned Issue Successfully ✔️");
-                                            await this.modify.getUiController().updateModalView(githubIssuesModal, { triggerId: context.getInteractionData().triggerId }, context.getInteractionData().user);
-                                            return context.getInteractionResponder().successResponse();
+                                            return await this.modify.getUiController().updateSurfaceView(githubIssuesModal, { triggerId: context.getInteractionData().triggerId }, context.getInteractionData().user);
+
                                         }
                                 }
                             }
@@ -735,7 +789,6 @@ export class ExecuteViewSubmitHandler {
                         if (roomId) {
                             let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                             let searchResult: string|undefined = view.state?.[ ModalsEnum.MULTI_SHARE_GITHUB_ISSUES_INPUT]?.[ModalsEnum.MULTI_SHARE_GITHUB_ISSUES_INPUT_ACTION];
-                            console.log(searchResult);
                             await sendMessage(this.modify,room,user,searchResult as string);
                         }
                     }

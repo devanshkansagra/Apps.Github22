@@ -7,7 +7,6 @@ import {
 } from "@rocket.chat/apps-engine/definition/accessors";
 import {
     AccessoryElements,
-    IBlock,
     ITextObject,
     TextObjectType,
 } from "@rocket.chat/apps-engine/definition/uikit/blocks";
@@ -99,7 +98,7 @@ export async function githubIssuesListModal({
             ).roomId;
         }
 
-        const blocks: (IBlock | LayoutBlock)[] = [
+        const blocks: LayoutBlock[] = [
             {
                 type: "section",
                 text: {
