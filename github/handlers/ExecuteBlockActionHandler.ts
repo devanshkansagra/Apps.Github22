@@ -1330,10 +1330,12 @@ export class ExecuteBlockActionHandler {
                             persistence: this.persistence,
                             http: this.http,
                             uikitcontext: context,
+                            id: this.app.getID(),
                         });
-                        return context
-                            .getInteractionResponder()
-                            .openModalViewResponse(addIssueAssignee);
+                        const triggerId = context.getInteractionData().triggerId;
+                        if(triggerId) {
+                            await this.modify.getUiController().openSurfaceView(addIssueAssignee, {triggerId}, context.getInteractionData().user)
+                        }
                     }
                     break;
                 }
