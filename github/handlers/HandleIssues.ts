@@ -34,7 +34,7 @@ export async function handleNewIssue(
             });
             await modify
                 .getUiController()
-                .openModalView(
+                .openSurfaceView(
                     modal,
                     { triggerId },
                     context.getSender()
