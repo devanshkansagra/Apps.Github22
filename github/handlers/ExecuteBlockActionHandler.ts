@@ -697,9 +697,16 @@ export class ExecuteBlockActionHandler {
                                 uikitcontext: context,
                                 id: this.app.getID(),
                             });
-                            const triggerId = context.getInteractionData().triggerId;
-                            if(triggerId) {
-                                await this.modify.getUiController().openSurfaceView(resultsModal, {triggerId}, user)
+                            const triggerId =
+                                context.getInteractionData().triggerId;
+                            if (triggerId) {
+                                await this.modify
+                                    .getUiController()
+                                    .openSurfaceView(
+                                        resultsModal,
+                                        { triggerId },
+                                        user,
+                                    );
                             }
                         } else {
                             console.log("invalid Trigger ID !");
@@ -786,21 +793,25 @@ export class ExecuteBlockActionHandler {
                                 read: this.read,
                                 persistence: this.persistence,
                                 http: this.http,
+                                id: this.app.getID(),
                             });
-                            await this.modify.getUiController().updateModalView(
-                                resultsModal,
-                                {
-                                    triggerId:
-                                        context.getInteractionData().triggerId,
-                                },
-                                context.getInteractionData().user,
-                            );
+                            await this.modify
+                                .getUiController()
+                                .updateSurfaceView(
+                                    resultsModal,
+                                    {
+                                        triggerId:
+                                            context.getInteractionData()
+                                                .triggerId,
+                                    },
+                                    context.getInteractionData().user,
+                                );
                         }
                     }
                     break;
                 }
                 case ModalsEnum.MULTI_SHARE_REMOVE_SEARCH_RESULT_ACTION: {
-                    let { user, room } = await context.getInteractionData();
+                    let { user, room } = context.getInteractionData();
                     let searchResultId: string = context.getInteractionData()
                         .value as string;
                     let roomId = "";
@@ -852,15 +863,19 @@ export class ExecuteBlockActionHandler {
                                 read: this.read,
                                 persistence: this.persistence,
                                 http: this.http,
+                                id: this.app.getID(),
                             });
-                            await this.modify.getUiController().updateModalView(
-                                resultsModal,
-                                {
-                                    triggerId:
-                                        context.getInteractionData().triggerId,
-                                },
-                                context.getInteractionData().user,
-                            );
+                            await this.modify
+                                .getUiController()
+                                .updateSurfaceView(
+                                    resultsModal,
+                                    {
+                                        triggerId:
+                                            context.getInteractionData()
+                                                .triggerId,
+                                    },
+                                    context.getInteractionData().user,
+                                );
                         }
                     }
                     break;
@@ -1334,9 +1349,16 @@ export class ExecuteBlockActionHandler {
                             uikitcontext: context,
                             id: this.app.getID(),
                         });
-                        const triggerId = context.getInteractionData().triggerId;
-                        if(triggerId) {
-                            await this.modify.getUiController().openSurfaceView(addIssueAssignee, {triggerId}, context.getInteractionData().user)
+                        const triggerId =
+                            context.getInteractionData().triggerId;
+                        if (triggerId) {
+                            await this.modify
+                                .getUiController()
+                                .openSurfaceView(
+                                    addIssueAssignee,
+                                    { triggerId },
+                                    context.getInteractionData().user,
+                                );
                         }
                     }
                     break;
@@ -1631,11 +1653,19 @@ export class ExecuteBlockActionHandler {
                         persistence: this.persistence,
                         http: this.http,
                         uikitcontext: context,
+                        id: this.app.getID(),
                     });
 
-                    return context
-                        .getInteractionResponder()
-                        .openModalViewResponse(searchModal);
+                    const triggerId = context.getInteractionData().triggerId;
+                    if (triggerId) {
+                        await this.modify
+                            .getUiController()
+                            .openSurfaceView(
+                                searchModal,
+                                { triggerId },
+                                context.getInteractionData().user,
+                            );
+                    }
                 }
 
                 case ModalsEnum.UNSUBSCRIBE_REMINDER_ACTION: {

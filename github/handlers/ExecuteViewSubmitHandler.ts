@@ -298,21 +298,26 @@ export class ExecuteViewSubmitHandler {
                                             read: this.read,
                                             persistence: this.persistence,
                                             http: this.http,
-                                            uikitcontext: context});
-                                        return context
-                                            .getInteractionResponder()
-                                            .openModalViewResponse(resultsModal);
+                                            uikitcontext: context,
+                                            id: this.app.getID(),
+                                        });
+                                        const triggerId = context.getInteractionData().triggerId;
+                                        if(triggerId) {
+                                            return this.modify.getUiController().openSurfaceView(resultsModal, {triggerId}, user)
+                                        }
                                     }
                                 }else{
-                                    const searchErrorModal =await githubSearchErrorModal({
+                                    const searchErrorModal = await githubSearchErrorModal({
                                         errorMessage:resultResponse.message,
                                         modify:this.modify,
                                         read:this.read,
-                                        uikitcontext:context
+                                        uikitcontext:context,
+                                        id: this.app.getID(),
                                     })
-                                    return context
-                                            .getInteractionResponder()
-                                            .openModalViewResponse(searchErrorModal);
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(searchErrorModal, {triggerId}, user)
+                                    }
                                 }
                             }
                         }
@@ -323,7 +328,6 @@ export class ExecuteViewSubmitHandler {
                     if (user.id) {
                         const { roomId } = await getInteractionRoomData(this.read.getPersistenceReader(), user.id);
                         if (roomId) {
-                            let room = await this.read.getRoomReader().getById(roomId) as IRoom;
                             let githubSearchStorage = new GithubSearchResultStorage(this.persistence,this.read.getPersistenceReader());
                             let searchResults = await githubSearchStorage.getSearchResults(roomId,user);
                             if(searchResults){
@@ -333,11 +337,14 @@ export class ExecuteViewSubmitHandler {
                                     read: this.read,
                                     persistence: this.persistence,
                                     http: this.http,
-                                    uikitcontext: context
+                                    uikitcontext: context,
+                                    id: this.app.getID(),
                                 });
-                                return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(searchResultShareModal);
+
+                                const triggerId = context.getInteractionData().triggerId;
+                                if(triggerId) {
+                                    return this.modify.getUiController().openSurfaceView(searchResultShareModal, {triggerId}, user)
+                                }
                             }
                         }
                     }
