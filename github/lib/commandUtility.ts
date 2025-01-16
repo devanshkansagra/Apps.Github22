@@ -293,10 +293,11 @@ export class CommandUtility implements ExecutorProps {
                 persistence: this.persistence,
                 http: this.http,
                 slashcommandcontext: this.context,
+                id: this.app.getID(),
             });
             await this.modify
                 .getUiController()
-                .openModalView(modal, { triggerId }, this.context.getSender());
+                .openSurfaceView(modal, { triggerId }, this.context.getSender());
         } else {
             console.log("invalid Trigger ID !");
         }
