@@ -679,6 +679,7 @@ export class ExecuteBlockActionHandler {
                     let value: string = context.getInteractionData()
                         .value as string;
                     let PullRequestDetails = value.split(" ");
+                    let accessToken = await getAccessTokenForUser(this.read, user, this.app.oauth2Config);
                     if (PullRequestDetails.length == 2) {
                         const triggerId =
                             context.getInteractionData().triggerId;
@@ -686,6 +687,7 @@ export class ExecuteBlockActionHandler {
                             repository: PullRequestDetails[0],
                             query: "pulls",
                             number: PullRequestDetails[1],
+                            accessToken: accessToken,
                         };
                         if (triggerId && data) {
                             const resultsModal = await pullDetailsModal({

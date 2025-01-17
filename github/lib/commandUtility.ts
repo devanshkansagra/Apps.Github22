@@ -27,6 +27,7 @@ import { HandleInvalidRepoName } from "../handlers/HandleInvalidRepoName";
 import { handleMainModal } from "../handlers/MainModalHandler";
 import { createReminder } from "../handlers/CreateReminder";
 import { ManageReminders, handleReminder } from "../handlers/HandleRemider";
+import { getAccessTokenForUser } from "../persistance/auth";
 
 export class CommandUtility implements ExecutorProps {
     sender: IUser;
@@ -264,10 +265,12 @@ export class CommandUtility implements ExecutorProps {
         }
 
     private async handleTriParamCommand() {
+        let accessToken = await getAccessTokenForUser(this.read, this.sender, this.app.oauth2Config);
         const data = {
             repository: this.command[0],
             query: this.command[1],
             number: this.command[2],
+            accessToken: accessToken,
         };
 
         const isValidRepo = await HandleInvalidRepoName(

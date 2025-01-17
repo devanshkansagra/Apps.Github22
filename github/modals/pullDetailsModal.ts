@@ -21,6 +21,7 @@ import {
     getInteractionRoomData,
 } from "../persistance/roomInteraction";
 import { LayoutBlock } from "@rocket.chat/ui-kit";
+import { getRepoData } from "../helpers/githubSDK";
 
 export async function pullDetailsModal({
     data,
@@ -48,6 +49,8 @@ export async function pullDetailsModal({
     const user =
         slashcommandcontext?.getSender() ||
         uikitcontext?.getInteractionData().user;
+    let repoDetails: any;
+    let pushRights: boolean = false;
 
     const modal: IUIKitSurfaceViewParam = {
         id: viewId,
@@ -88,6 +91,17 @@ export async function pullDetailsModal({
         const pullRawData = await http.get(
             `https://api.github.com/repos/${data?.repository}/pulls/${data?.number}`,
         );
+
+        if (data?.accessToken) {
+            repoDetails = await getRepoData(
+                http,
+                data?.repository,
+                data?.accessToken.token,
+            );
+            pushRights =
+                repoDetails?.permissions?.push ||
+                repoDetails?.permissions?.admin;
+        }
 
         // If pullsNumber doesn't exist, notify the user
         if (pullRawData.statusCode === 404) {
@@ -153,6 +167,47 @@ export async function pullDetailsModal({
             type: "divider",
         });
 
+        let actionElements: any = [];
+
+        if (pullData?.mergeable && pushRights) {
+            actionElements.push({
+                appId: id,
+                type: "button",
+                actionId: ModalsEnum.MERGE_PULL_REQUEST_ACTION,
+                text: {
+                    text: ModalsEnum.MERGE_PULL_REQUEST_LABEL,
+                    type: TextObjectType.PLAINTEXT,
+                },
+                value: `${data?.repository} ${data?.number}`,
+                blockId: "MERGE_PULL_REQUEST_BLOCK",
+            });
+        }
+
+        actionElements.push({
+            appId: id,
+            type: "button",
+            actionId: ModalsEnum.PR_COMMENT_LIST_ACTION,
+            text: {
+                text: ModalsEnum.PR_COMMENT_LIST_LABEL,
+                type: TextObjectType.PLAINTEXT,
+            },
+            value: `${data?.repository} ${data?.number}`,
+            blockId: "PR_COMMENT_LIST_BLOCK",
+        });
+
+        if (!pullData?.merged) {
+            actionElements.push({
+                appId: id,
+                type: "button",
+                actionId: ModalsEnum.APPROVE_PULL_REQUEST_ACTION,
+                text: {
+                    text: ModalsEnum.APPROVE_PULL_REQUEST_LABEL,
+                    type: TextObjectType.PLAINTEXT,
+                },
+                value: `${data?.repository} ${data?.number}`,
+                blockId: "APPROVE_PULL_REQUEST_BLOCK",
+            });
+        }
         let index = 1;
 
         for (let file of pullRequestFiles) {
@@ -201,46 +256,12 @@ export async function pullDetailsModal({
 
             index++;
         }
+        blocks.push({
+            type: "actions",
+            elements: actionElements,
+        });
     }
 
-    blocks.push({
-        type: 'actions',
-        elements: [
-            {
-                appId: id,
-                type: 'button',
-                actionId: ModalsEnum.MERGE_PULL_REQUEST_ACTION,
-                text: {
-                    text: ModalsEnum.MERGE_PULL_REQUEST_LABEL,
-                    type: TextObjectType.PLAINTEXT,
-                },
-                value: `${data?.repository} ${data?.number}`,
-                blockId: 'MERGE_PULL_REQUEST_BLOCK',
-            },
-            {
-                appId: id,
-                type: 'button',
-                actionId: ModalsEnum.PR_COMMENT_LIST_ACTION,
-                text: {
-                    text: ModalsEnum.PR_COMMENT_LIST_LABEL,
-                    type: TextObjectType.PLAINTEXT,
-                },
-                value: `${data?.repository} ${data?.number}`,
-                blockId: 'PR_COMMENT_LIST_BLOCK',
-            },
-            {
-                appId: id,
-                type: 'button',
-                actionId: ModalsEnum.APPROVE_PULL_REQUEST_ACTION,
-                text: {
-                    text: ModalsEnum.APPROVE_PULL_REQUEST_LABEL,
-                    type: TextObjectType.PLAINTEXT,
-                },
-                value: `${data?.repository} ${data?.number}`,
-                blockId: 'APPROVE_PULL_REQUEST_BLOCK',
-            },
-        ]
-    })
     modal.blocks = blocks;
     return modal;
 }
