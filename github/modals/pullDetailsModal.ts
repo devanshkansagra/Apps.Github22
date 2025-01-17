@@ -22,6 +22,8 @@ import {
 } from "../persistance/roomInteraction";
 import { LayoutBlock } from "@rocket.chat/ui-kit";
 import { getRepoData } from "../helpers/githubSDK";
+import { AppSettingsEnum } from "../settings/settings";
+import { GitHubApi } from "../helpers/githubSDKclass";
 
 export async function pullDetailsModal({
     data,
@@ -86,6 +88,27 @@ export async function pullDetailsModal({
                     user.id,
                 )
             ).roomId;
+        }
+
+        let userInfo: any;
+        try {
+            let BaseHost = await read
+                .getEnvironmentReader()
+                .getSettings()
+                .getValueById(AppSettingsEnum.BaseHostID);
+            let BaseApiHost = await read
+                .getEnvironmentReader()
+                .getSettings()
+                .getValueById(AppSettingsEnum.BaseApiHostID);
+            const gitHubApiClient = new GitHubApi(
+                http,
+                data?.accessToken.token,
+                BaseHost,
+                BaseApiHost,
+            );
+            userInfo = await gitHubApiClient.getBasicUserInfo();
+        } catch (error) {
+            console.log("Error occurred while fetching user info:", error);
         }
 
         const pullRawData = await http.get(
@@ -169,6 +192,7 @@ export async function pullDetailsModal({
 
         let actionElements: any = [];
 
+        // Display the button based on merge access and whether the pull request is mergeable or not.
         if (pullData?.mergeable && pushRights) {
             actionElements.push({
                 appId: id,
@@ -195,7 +219,8 @@ export async function pullDetailsModal({
             blockId: "PR_COMMENT_LIST_BLOCK",
         });
 
-        if (!pullData?.merged) {
+        // Display the approve button if the user is not attempting self-approval and if the pull request has not already been merged.
+        if (!pullData?.merged && (userInfo?.username !== pullData.head.user.login)) {
             actionElements.push({
                 appId: id,
                 type: "button",
