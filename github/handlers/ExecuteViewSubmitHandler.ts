@@ -172,10 +172,11 @@ export class ExecuteViewSubmitHandler {
                                 repository=repository?.trim();
                                 let response = await getIssueTemplates(this.http,repository,accessToken.token);
                                 if((!response.template_not_found) && response?.templates?.length){
-                                    const issueTemplateSelection = await issueTemplateSelectionModal({ data: response, modify: this.modify, read: this.read, persistence: this.persistence, http: this.http, uikitcontext: context });
-                                    return context
-                                    .getInteractionResponder()
-                                    .openModalViewResponse(issueTemplateSelection);
+                                    const issueTemplateSelection = await issueTemplateSelectionModal({ data: response, modify: this.modify, read: this.read, persistence: this.persistence, http: this.http, uikitcontext: context, id: this.app.getID() });
+                                    const triggerId = context.getInteractionData().triggerId;
+                                    if(triggerId) {
+                                        return this.modify.getUiController().openSurfaceView(issueTemplateSelection, {triggerId}, user)
+                                    }
                                 }else{
                                     let data = {
                                         repository: repository
@@ -378,8 +379,7 @@ export class ExecuteViewSubmitHandler {
                                     let errorMessage = mergeResponse?.message;
                                     const unauthorizedMessageModal = await messageModal(
                                         {
-                                            message:
-                                                "Unauthorized Action 🤖 You dont have push rights ⚠️",
+                                            message:errorMessage,
                                             modify: this.modify,
                                             read: this.read,
                                             persistence: this.persistence,

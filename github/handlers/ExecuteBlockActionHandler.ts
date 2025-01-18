@@ -915,10 +915,12 @@ export class ExecuteBlockActionHandler {
                                 persistence: this.persistence,
                                 http: this.http,
                                 uikitcontext: context,
+                                id: this.app.getID(),
                             });
-                            return context
-                                .getInteractionResponder()
-                                .openModalViewResponse(mergePRModal);
+                            const triggerId = context.getInteractionData().triggerId;
+                            if(triggerId) {
+                                await this.modify.getUiController().openSurfaceView(mergePRModal, { triggerId }, user)
+                            }
                         } else {
                             const unauthorizedMessageModal = await messageModal(
                                 {
